@@ -155,7 +155,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
     /**
     *  Opens the db
     *  @param {string} dbName Name of db
-    *  @returns A jqIdb object composed of a promise and the Idb object
+    *  @returns $.Deferred object composed of a promise and the {Idb} object
     */
     Idb.prototype.open = function (dbName, options) {
 
@@ -213,8 +213,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
 
         /**
-        * Opens an already existing store or
-        * Creates one or more new stores. Stores will
+        * Creates one or more new stores
         */
         stores: function (stores) {
 
@@ -267,9 +266,6 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
         /**
         * Adds one or more items to the store
-        * If only a single store has been opened or created, 
-        * store name is passed in implicitly. 
-        * Else store name needs to be passed in as second parameter
         */
         add: function (items, storename) {
 
