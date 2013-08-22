@@ -36,25 +36,6 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
     var indexeddb = window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB;
 
-    var getDfd = function (extension, idbContext) {
-
-        var promise  = $.Deferred(function(dfd) {
-
-            this.idb = idbContext;
-            $.extend(this, extension);
-
-        });
-
-        return promise;
-    }
-
-    var Ops = {
-
-        FIND_STORE : 'find_store',
-        CREATE_STORE: 'create_store'
-
-    }
-
     /**
     * ==========================================
     * Private Methods
@@ -74,15 +55,14 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
         ,   dfd = arguments[1]
         ,   items = Array.prototype.splice.call(arguments, 2)
         ,   db = this.__db__
-        ,   trans = db.transaction([storename], "readwrite")
-        ,   store = trans.objectStore(storename)
-        ,   request
         ,   self = this
         ,   addpromises = [];
 
         $.each(items, function(i, item){
 
-            var request = store.put(item)
+            var trans = db.transaction([storename], "readwrite")
+            ,   store = trans.objectStore(storename)
+            ,   request = store.put(item)
             ,   p = $.Deferred();
 
             request.onsuccess = function(e) {
@@ -105,7 +85,20 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
             dfd.rejectWith(self, arguments)
         });
         
+    };
+
+    var getDfd = function (extension, idbContext) {
+
+        var promise  = $.Deferred(function(dfd) {
+
+            this.idb = idbContext;
+            $.extend(this, extension);
+
+        });
+
+        return promise;
     }
+
 
     /**
     *  The actual IndexedDB class prototype
@@ -117,19 +110,24 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
     /**
     *  Creates a store
-    *  @param {string} storename Name of store
+    *  @param {string || Array} store Name of store or Array of Stores
     */
-    Idb.prototype.createStore = function (storeName, keyPath, dfd) {
+    Idb.prototype.createStores = function (stores, dfd) {
 
-        console.log('Will now create store '+storeName);
+        console.log('Will now create store '+stores);
         var db = this.__db__;
 
-        if(db.objectStoreNames.contains(storeName)) {
-            db.deleteObjectStore(storeName);
-        }
+        $.each(stores, function (i, s){
 
-        var store = db.createObjectStore(storeName, {keyPath: keyPath});
-        dfd.resolveWith(this, [storeName]);
+            if(db.objectStoreNames.contains(s.name)) {
+                 db.deleteObjectStore(s.name);
+            }
+
+            var store = db.createObjectStore(s.name, {keyPath: s.keyPath});
+
+        });
+
+        dfd.resolveWith(this, [stores]);
 
 
     }
@@ -214,19 +212,22 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
     var DbPromise = {
 
 
-        store: function (store) {
+        /**
+        * Opens an already existing store or
+        * Creates one or more new stores. Stores will
+        */
+        stores: function (stores) {
 
             var self = this
             ,   dfd = getDfd(StorePromise, this.idb)
             ,   creationDfd = $.Deferred()
-            ,   storeExistsDfd = $.Deferred()
-            ,   storeName = $.isPlainObject(store)?store.name : store
-            ,   keyPath = $.isPlainObject(store)?store.keyPath: null;
+            ,   openingDfd = $.Deferred();
 
-            this.versioningPromise.done(function(op) {
+            this.versioningPromise.done(function (op) {
 
                 if(op.create === true) {
-                    this.createStore(storeName, keyPath,  creationDfd);
+
+                     this.createStores(stores,  creationDfd);
                 }
                 else {
                     creationDfd.resolve();
@@ -236,19 +237,20 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
             this.openingPromise.done(function (){
 
-                this.hasStore(storeName, storeExistsDfd);
-
+               //Do nothing
+               openingDfd.resolve();
             });
 
-            $.when(creationDfd, storeExistsDfd).then(function(){
+            $.when(creationDfd, openingDfd).then(function(){
 
-                dfd.resolveWith(self.idb, [storeName]);
+                dfd.resolveWith(self.idb, [stores]);
 
             },
             function() {
 
                 dfd.rejectWith(self.idb);
             });
+
             return dfd;
         }
 
@@ -269,7 +271,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
         * store name is passed in implicitly. 
         * Else store name needs to be passed in as second parameter
         */
-        add: function (items) {
+        add: function (items, storename) {
 
             var dfd = $.Deferred();
             console.log(this);
@@ -278,7 +280,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
                 dfd.reject();
             }
 
-            this.done(function(storename){
+            this.done(function(){
 
                 var objectsarr = $.isArray(items)?items:[items];
                 doAdd.apply(this, $.merge([storename, dfd], objectsarr));
