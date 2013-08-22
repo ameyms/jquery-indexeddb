@@ -263,6 +263,12 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
     var StorePromise = {
 
 
+        /**
+        * Adds one or more items to the store
+        * If only a single store has been opened or created, 
+        * store name is passed in implicitly. 
+        * Else store name needs to be passed in as second parameter
+        */
         add: function (items) {
 
             var dfd = $.Deferred();
