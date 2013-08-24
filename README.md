@@ -30,11 +30,17 @@ Modern JS APIs need to use promises.
 						stores:list_of_stores
 					});
 
-	// ... Add items to a store
+	// ... Add objects to a store
 	db.put(items, 'into_store').done(onsuccess);
 
-	//.. And delete items from a store
+	//.. And delete objects from a store
 	db.remove('from_store', conditionFunc).done(onremoval);
+
+	//.. And not to forget fetching objects from a store
+	db.select('from_my_store', conditionFunc).done(function (items){
+
+		console.log(items)
+	});
 
   ```
 Just the right amount of abstraction, Promises using `$.Deferred` would make this API 
