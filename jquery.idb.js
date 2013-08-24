@@ -101,7 +101,10 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
 
     /**
-    *  The actual IndexedDB class prototype
+    * ======================================
+    *  The actual IndexedDB class definition
+    *
+    * =======================================
     */
     var Idb = function () {
 
@@ -136,17 +139,17 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
     *  Checks if the store exists
     *  @param {string} storename Name of store
     */
-    Idb.prototype.hasStore = function (storeName, dfd) {
+    Idb.prototype.hasStore = function (storeName) {
 
         console.log('Checking for store '+storeName);
         var db = this.__db__;
 
         if(db.objectStoreNames.contains(storeName)) {
-            dfd.resolveWith(this, [storeName]);
+           return true;
         }
         else {
 
-            dfd.rejectWith(this);
+            return false;
         }
     }
 
@@ -214,13 +217,22 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
         /**
         * Creates one or more new stores
+        * This method should be called only ONCE.
+        * If indexeddb version isnt upgraded, and list contains stores that 
+        * don`t currently exists in db, the promise fails.
+        *
+        * @params stores {Array} list of stores to be created
+        * @returns {$.Deferred} A deferred object
         */
         stores: function (stores) {
 
             var self = this
             ,   dfd = getDfd(StorePromise, this.idb)
             ,   creationDfd = $.Deferred()
-            ,   openingDfd = $.Deferred();
+            ,   openingDfd = $.Deferred()
+            ,   storeExistanceDfd = $.Deferred()
+            ,   absentStores = []
+            ,   presentStores = [];
 
             this.versioningPromise.done(function (op) {
 
@@ -236,18 +248,41 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
             this.openingPromise.done(function (){
 
-               //Do nothing
-               openingDfd.resolve();
+                var idbContext = this;
+               //Check if each of the stores exists
+               $.each(stores, function (i, s) {
+
+                    if(idbContext.hasStore(s.name)) {
+
+                        presentStores.push(s.name);
+                    }
+                    else {
+
+                        absentStores.push(s.name);
+                    }
+
+               });
+
+               if (absentStores.length > 0) {
+                    storeExistanceDfd.rejectWith(this, [{'present':presentStores, 'absent':absentStores}]);
+                }
+                else {
+                    storeExistanceDfd.resolveWith(this);
+                    
+                }
+
+
+
             });
 
-            $.when(creationDfd, openingDfd).then(function(){
+            $.when(creationDfd, openingDfd, storeExistanceDfd).then(function(){
 
-                dfd.resolveWith(self.idb, [stores]);
+                dfd.resolveWith(self.idb);
 
             },
-            function() {
+            function(c, o, e) {
 
-                dfd.rejectWith(self.idb);
+                dfd.rejectWith.call(dfd, self.idb, e);
             });
 
             return dfd;
@@ -265,11 +300,15 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
 
         /**
-        * Adds one or more items to the store
+        * Adds or updates one or more items to the store
+        * @param items {Array} array of items to be added
+        * @param from {string} Name of store to which items are to be added
         */
-        add: function (items, storename) {
+        put: function (items, from) {
 
-            var dfd = $.Deferred();
+            var dfd = $.Deferred()
+            ,   storename = from;
+
             console.log(this);
             if(this.state() === 'rejected') {
 
@@ -286,20 +325,21 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
             return dfd;
         },
 
+
+        /**
+        * Deletes objects from a given store
+        * @param ids {Array} Array of ids of object that are to be deleted
+        * @param from {string} Name of store
+        */
         remove: function () {
 
         },
 
-        nuke: function () {
+        destroy: function () {
 
         },
 
-        update: function () {
-
-
-        },
-
-        pick: function (iterator, context) {
+        select: function (from, condition, context) {
 
         },
 
