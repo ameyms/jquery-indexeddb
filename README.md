@@ -2,7 +2,7 @@ IndexedDB Plugin for JQuery
 ===========================
 
 
-*Warning! This is not at all production ready!*
+*Warning! This plugin is still in beta and may not be production ready! *
 
 
 Why A JQuery Plugin
