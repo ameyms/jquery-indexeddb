@@ -1,5 +1,5 @@
 /**
-* jquery.idb.js v0.0.1-dev by @ameyms
+* jquery.idb.js v0.1.0-beta by @ameyms
 * The MIT License (MIT)
 * 
 * Copyright (c) 2013 Amey Sakhadeo
@@ -26,7 +26,7 @@
 if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
 /* ========================================================================
- * jquery-indexeddb: jquery.idb v0.0.1-dev
+ * jquery-indexeddb: jquery.idb v0.1.0-beta
  * http://ameyms.github.com/jquery-indexeddb
  * ========================================================================
  *

@@ -1,0 +1,26 @@
+{
+	"name" : "idb",
+	"title" : "jQuery IndexedDB",
+	"description" : "A jQuery Plugin for IndexedDB",
+	
+	"author" : {
+    	"name" : "Amey Sakhadeo",
+        "url" : "http://ameyms.com"
+	},
+	"version" : "0.1.0-beta",
+
+	"licenses": [{
+
+        "type": "MIT",
+        "url": "https://raw.github.com/ameyms/jquery-indexeddb/master/LICENSE"
+    }],
+
+    "dependencies": {
+        "jquery": ">=1.9"
+    },
+
+    "keywords" : ["IndexedDB", "objectstore", "html5", "offline", "storage"]
+
+
+
+}
