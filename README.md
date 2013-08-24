@@ -22,13 +22,19 @@ Modern JS APIs need to use promises.
   Ideally, this how IndexedDB should work
   ```javascript
 
+  	//Define and initialize an IndexedDB ...
 	var db = $.idb({
-						name:'fubar-db', 
-						version: 2, 
-						stores:[{name:'panda', keyPath:'po'},
-								{name:'kungfu', keyPath:'chop'},
-								{name:'soup', keyPath:'noodle'}]
+						name:'foobar', 
+						version: 2,
+						drop: stores_to_be_deleted,
+						stores:list_of_stores
 					});
+
+	// ... Add items to a store
+	db.put(items, 'into_store').done(onsuccess);
+
+	//.. And delete items from a store
+	db.remove('from_store', conditionFunc).done(onremoval);
 
   ```
 Just the right amount of abstraction, Promises using `$.Deferred` would make this API 

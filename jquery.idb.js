@@ -128,10 +128,15 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
 
     /**
-    * ======================================
-    *  The actual IndexedDB class definition
+    * ======================
+    * CORE
+    * ======================
     *
-    * =======================================
+    * The actual IndexedDB class definition
+    * This class encapsulates core IndexedDB functionality for
+    * - Creating stores
+    * - Add/ Delete/ Fetch objects
+    * - In future: Handle events
     */
     var Idb = function () {
 
@@ -140,7 +145,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
     /**
     *  Creates a store
-    *  @param {string || Array} store Name of store or Array of Stores
+    *  @param {Array} Array of Stores
     */
     Idb.prototype.createStores = function (stores, dfd) {
 
@@ -153,6 +158,26 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
             }
 
             var store = db.createObjectStore(s.name, {keyPath: s.keyPath});
+
+        });
+
+
+    }
+
+    /**
+    *  Deletes a store
+    *  @param  stores {Array} Array of Stores
+    */
+    Idb.prototype.deleteStores = function (stores, dfd) {
+
+        var db = this.__db__;
+
+        $.each(stores, function (i, s){
+
+            if(db.objectStoreNames.contains(s)) {
+                 db.deleteObjectStore(s);
+            }
+
 
         });
 
@@ -287,10 +312,12 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
         var promise = getDfd(StorePromise, this)
         ,   dbName
         ,   stores = []
+        ,   destroyStores = []
         ,   self = this
         ,   version = 1
         ,   absentStores = []
-        ,   presentStores = [];
+        ,   presentStores = []
+        ,   notDropped = [];
         
         if($.type(dbConfig) === 'string') {
 
@@ -302,6 +329,8 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
             dbName = dbConfig.name;
             version = dbConfig.version;
             stores = dbConfig.stores || [];
+            destroyStores = dbConfig.drop || [];
+
         }
 
         var request = indexedDB.open(dbName, version);
@@ -315,6 +344,11 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
                 promise.rejectWith(self, [err]);
             };
 
+            if(destroyStores) {
+
+                self.deleteStores(destroyStores);
+            }
+            
             if(stores) {
 
                 self.createStores(stores);
@@ -340,13 +374,23 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
                });
 
-               if (absentStores.length > 0) {
-                    promise.rejectWith(self, [{'present':presentStores, 'absent':absentStores}]);
+
+            $.each(destroyStores, function (i, s) {
+
+                if(self.hasStore(s)) {
+
+                    notDropped.push(s);
                 }
-                else {
-                    promise.resolveWith(self);
-                    
-                }            
+
+            });
+
+           if (absentStores.length > 0 || notDropped.length > 0) {
+                promise.rejectWith(self, [{'present':presentStores, 'absent':absentStores, 'dropFailed': notDropped}]);
+            }
+            else {
+                promise.resolveWith(self);
+                
+            }            
 
         };
 
@@ -362,13 +406,16 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
 
     /**
     * ==========================
-    * PROMISES
+    * INTERFACE
     * ==========================
     */
 
     /**
-    *   Promise resolution methods applicable on creating or
-    *   `opening` an IndexedDB store.
+    * Promise resolution methods applicable on creating or
+    * `opening` an IndexedDB store.
+    * 
+    * This class also acts as an interface to expose functionality 
+    * to API users 
     */
     var StorePromise = {
 
@@ -403,7 +450,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
         * Deletes objects from a given store based on a `condition` function
         * Optionally, `context` for the conidtion function may be provided
         * @param from {string} Name of store
-        * @param condition {Function} A function that test if object is to be deleted from objectstore
+        * @param condition {Function} A function that tests if object is to be deleted from objectstore
         * The function will be call with arguments (key, object)
         * @param context {Object} optional context to invoke condition function against
         */
@@ -427,10 +474,22 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
         },
 
 
-        destroy: function (store) {
+        /**
+        * Deletes ALL objects from the store
+        */
+        clear: function (store) {
 
+            return this.remove(store);
         },
 
+        /**
+        * Retrieves objects from store depending on a condition
+        * @param from {string} name of store
+        * @param condition {Function} A function that tests if object is to be retrieved from objectstore
+        * The function will be call with arguments (key, object)
+        * @param context {Object} optional context for the aforementioned function
+        * @returns {$.Deferred} A deferred object
+        */
         select: function (from, condition, context) {
 
 
@@ -461,6 +520,11 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery") }
     }
 
 
+    /**
+    * ==========================
+    * jQuery Plugin Declaration
+    * ===========================
+    */
     $.extend({
 
 
