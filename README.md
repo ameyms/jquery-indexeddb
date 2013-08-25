@@ -1,8 +1,6 @@
-IndexedDB Plugin for JQuery
+IndexedDB Plugin for JQuery [![Build Status](https://travis-ci.org/ameyms/jquery-indexeddb.png)](https://travis-ci.org/ameyms/jquery-indexeddb)
 ===========================
 
-
-*Warning! This plugin is still in beta and may not be production ready! *
 
 
 Why A JQuery Plugin
