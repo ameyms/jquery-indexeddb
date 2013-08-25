@@ -1,4 +1,4 @@
-IndexedDB Plugin for JQuery [![Build Status](https://travis-ci.org/ameyms/jquery-indexeddb.png)](https://travis-ci.org/ameyms/jquery-indexeddb)
+$.idb [![Build Status](https://travis-ci.org/ameyms/jquery-indexeddb.png)](https://travis-ci.org/ameyms/jquery-indexeddb)
 ===========================
 
 
@@ -47,7 +47,7 @@ as beautiful and as joyful to use as it should've been.
 
 License
 ---
-This library will available under the 
+This library is available under the 
 [MIT license](https://github.com/ameyms/jquery-indexeddb/blob/master/LICENSE "License")
 
 
