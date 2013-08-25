@@ -8,6 +8,7 @@ example_demo.html
 .DS_Store?
 ._*
 .Spotlight-V100
+node_modules/
 .Trashes
 ehthumbs.db
 Thumbs.db
