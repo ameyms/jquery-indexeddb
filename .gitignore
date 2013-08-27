@@ -2,13 +2,17 @@
 #########################
 example_demo.html
 
+# Dev Files #
+#############
+node_modules/
+bower_modules/
+
 # OS generated files #
 ######################
 .DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
-node_modules/
 .Trashes
 ehthumbs.db
 Thumbs.db
