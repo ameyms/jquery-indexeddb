@@ -7,7 +7,7 @@
       "name" : "Amey Sakhadeo",
         "url" : "http://ameyms.com"
   },
-  "version" : "0.1.2",
+  "version" : "0.2.2",
 
     "main": ["./dist/jquery.idb.min.js"],
     "ignore": [

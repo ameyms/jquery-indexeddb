@@ -207,7 +207,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery"); }
 
         var self = this,
         db = this.__db__,
-        trans = db.transaction([storename], "readwrite"),
+        trans = db.transaction([storename], 'readonly'),
         store = trans.objectStore(storename),
         cursorRequest = store.openCursor(),
         resultSet = [],
@@ -249,7 +249,7 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery"); }
 
         var self = this ,
         db = this.__db__ ,
-        trans = db.transaction([storename], "readwrite"),
+        trans = db.transaction([storename], 'readwrite'),
         store = trans.objectStore(storename),
         cursorRequest = store.openCursor(),
         resultSet = [],
@@ -398,6 +398,27 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery"); }
     };
 
 
+    Idb.prototype.clearStore = function (storename, dfd) {
+
+        var self = this,
+        db = this.__db__,
+        trans = db.transaction([storename], "readwrite"),
+        store = trans.objectStore(storename),
+        clearingReq;
+
+        clearingReq = store.clear();
+
+        clearingReq.onsuccess = function (e) {
+
+            dfd.resolve();
+        };
+
+        clearingReq.onerror = function (e) {
+            dfd.rejectWith(e);
+        };
+
+    };
+
 
     /**
     * ==========================
@@ -474,7 +495,20 @@ if (!jQuery) { throw new Error("jQuery Idb requires jQuery"); }
         */
         clear: function (store) {
 
-            return this.remove(store);
+            var dfd = $.Deferred();
+
+            this.done(function (){
+
+                 this.clearStore(store, dfd);
+
+            });
+
+            this.fail(function (err) {
+
+                dfd.rejectWith(this, [err]);
+            });
+
+            return dfd;
         },
 
         /**
